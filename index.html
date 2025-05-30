@@ -117,6 +117,10 @@
                             <i class="anticon anticon-book"></i>
                             <span>学习历史</span>
                         </div>
+                        <div class="nav-item" data-page="recruitment">
+                            <i class="anticon anticon-team"></i>
+                            <span>企业招聘</span>
+                        </div>
                         <div class="nav-item" data-page="settings">
                             <i class="anticon anticon-setting"></i>
                             <span>设置</span>
@@ -316,10 +320,6 @@
                             
                             <!-- 我举办的活动 -->
                             <div class="activities-content active" id="hosted" style="display: block;">
-                                <button class="create-activity-btn">
-                                    <i class="anticon anticon-plus"></i>
-                                    创建新活动
-                                </button>
                                 <div class="activity-list">
                                     <!-- 活动列表将通过 JavaScript 动态生成 -->
                                 </div>
@@ -406,6 +406,216 @@
                                 <span>社会实践</span>
                                 <span>志愿服务</span>
                                 <span>乡村振兴</span>
+                            </div>
+                        </div>
+
+                        <!-- 企业招聘页面 -->
+                        <div class="page" id="recruitment">
+                            <div class="recruitment-container">
+                                <div class="recruitment-header">
+                                    <h2>企业招聘平台</h2>
+                                    <p>选择您的身份进入相应平台</p>
+                                </div>
+                                
+                                <div class="recruitment-buttons">
+                                    <button class="recruitment-btn student-btn" onclick="showStudentLogin()">
+                                        <i class="anticon anticon-user"></i>
+                                        <span>我是学生</span>
+                                    </button>
+                                    <button class="recruitment-btn enterprise-btn" onclick="showEnterpriseLogin()">
+                                        <i class="anticon anticon-bank"></i>
+                                        <span>我是企业</span>
+                                    </button>
+                                </div>
+
+                                <!-- 学生登录模态框 -->
+                                <div class="modal" id="studentLoginModal">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h2>学生登录</h2>
+                                            <button class="close-btn" onclick="closeStudentLogin()">×</button>
+                                        </div>
+                                        <form id="studentLoginForm">
+                                            <div class="form-group">
+                                                <input type="text" name="name" placeholder="请输入姓名" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="text" name="xuexin" placeholder="请输入学信网账号" required>
+                                            </div>
+                                            <div class="form-actions">
+                                                <button type="submit" class="submit-btn">登录</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- 企业登录模态框 -->
+                                <div class="modal" id="enterpriseLoginModal">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h2>企业登录</h2>
+                                            <button class="close-btn" onclick="closeEnterpriseLogin()">×</button>
+                                        </div>
+                                        <form id="enterpriseLoginForm">
+                                            <div class="form-group">
+                                                <input type="text" name="company" placeholder="请输入企业名称" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="text" name="jobNumber" placeholder="请输入工号" required>
+                                            </div>
+                                            <div class="form-actions">
+                                                <button type="submit" class="submit-btn">登录</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- 学生端内容 -->
+                                <div class="recruitment-content" id="studentContent" style="display: none;">
+                                    <div class="content-header">
+                                        <h2>招聘信息</h2>
+                                        <div class="search-box">
+                                            <input type="text" placeholder="搜索职位、公司...">
+                                            <i class="anticon anticon-search"></i>
+                                        </div>
+                                    </div>
+                                    <div class="job-list-container">
+                                        <div class="job-list">
+                                            <!-- 招聘信息将通过 JavaScript 动态生成 -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 职位详情模态框 -->
+                                <div class="modal" id="jobDetailModal">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h2>职位详情</h2>
+                                            <button class="close-btn" onclick="closeJobDetail()">×</button>
+                                        </div>
+                                        <div class="job-detail-content">
+                                            <div class="job-header">
+                                                <h3 class="job-title">前端开发工程师</h3>
+                                                <div class="job-company">
+                                                    <i class="anticon anticon-bank"></i>
+                                                    <span>科技创新有限公司</span>
+                                                </div>
+                                            </div>
+                                            <div class="job-info-grid">
+                                                <div class="info-item">
+                                                    <i class="anticon anticon-environment"></i>
+                                                    <span class="label">工作地点</span>
+                                                    <span class="value">北京</span>
+                                                </div>
+                                                <div class="info-item">
+                                                    <i class="anticon anticon-dollar"></i>
+                                                    <span class="label">薪资范围</span>
+                                                    <span class="value">15k-25k</span>
+                                                </div>
+                                                <div class="info-item">
+                                                    <i class="anticon anticon-calendar"></i>
+                                                    <span class="label">发布时间</span>
+                                                    <span class="value">2024-03-15</span>
+                                                </div>
+                                                <div class="info-item">
+                                                    <i class="anticon anticon-user"></i>
+                                                    <span class="label">招聘人数</span>
+                                                    <span class="value">2人</span>
+                                                </div>
+                                            </div>
+                                            <div class="job-section">
+                                                <h4>职位描述</h4>
+                                                <div class="job-description">
+                                                    <!-- 职位描述将通过 JavaScript 动态生成 -->
+                                                </div>
+                                            </div>
+                                            <div class="job-section">
+                                                <h4>任职要求</h4>
+                                                <div class="job-requirements">
+                                                    <!-- 任职要求将通过 JavaScript 动态生成 -->
+                                                </div>
+                                            </div>
+                                            <div class="job-section">
+                                                <h4>公司福利</h4>
+                                                <div class="job-benefits">
+                                                    <!-- 公司福利将通过 JavaScript 动态生成 -->
+                                                </div>
+                                            </div>
+                                            <div class="job-actions">
+                                                <button class="apply-btn" onclick="applyJob()">申请职位</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 企业端内容 -->
+                                <div class="recruitment-content" id="enterpriseContent" style="display: none;">
+                                    <div class="content-header">
+                                        <h2>应聘者列表</h2>
+                                        <div class="search-box">
+                                            <input type="text" placeholder="搜索应聘者...">
+                                            <i class="anticon anticon-search"></i>
+                                        </div>
+                                    </div>
+                                    <div class="applicant-list">
+                                        <!-- 应聘者列表将通过 JavaScript 动态生成 -->
+                                    </div>
+                                </div>
+
+                                <!-- 应聘者详情模态框 -->
+                                <div class="modal" id="applicantDetailModal">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h2>应聘者详情</h2>
+                                            <button class="close-btn" onclick="closeApplicantDetail()">×</button>
+                                        </div>
+                                        <div class="applicant-profile">
+                                            <div class="profile-header">
+                                                <div class="profile-avatar">
+                                                    <img src="default-avatar.png" alt="头像">
+                                                </div>
+                                                <div class="profile-info">
+                                                    <h3 class="applicant-name">张三</h3>
+                                                    <p class="applicant-school">北京大学</p>
+                                                </div>
+                                            </div>
+                                            <div class="profile-stats">
+                                                <div class="stat-item">
+                                                    <span class="stat-value">98.7%</span>
+                                                    <span class="stat-label">经历真实性</span>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <span class="stat-value">32</span>
+                                                    <span class="stat-label">参与活动</span>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <span class="stat-value">A+</span>
+                                                    <span class="stat-label">综合评分</span>
+                                                </div>
+                                            </div>
+                                            <div class="profile-sections">
+                                                <div class="profile-section">
+                                                    <h4>活动经历</h4>
+                                                    <div class="activity-timeline">
+                                                        <!-- 活动记录将通过 JavaScript 动态生成 -->
+                                                    </div>
+                                                </div>
+                                                <div class="profile-section">
+                                                    <h4>能力评估</h4>
+                                                    <div class="skill-radar">
+                                                        <canvas id="skillRadarChart"></canvas>
+                                                    </div>
+                                                </div>
+                                                <div class="profile-section">
+                                                    <h4>个人特质</h4>
+                                                    <div class="personality-tags">
+                                                        <!-- 个人特质标签将通过 JavaScript 动态生成 -->
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -925,16 +1135,16 @@
         }
 
         .modal-header {
-            padding: 15px 20px;
-            border-bottom: 1px solid #f0f0f0;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
         }
 
-        .modal-header h3 {
+        .modal-header h2 {
             margin: 0;
-            font-size: 18px;
+            font-size: 20px;
             color: #333;
         }
 
@@ -946,46 +1156,21 @@
             cursor: pointer;
             padding: 0;
             line-height: 1;
-        }
-
-        .modal-body {
-            padding: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
-        }
-
-        .form-group input:focus {
-            border-color: #2D5C9E;
-            outline: none;
-        }
-
-        .sms-group {
+            width: 24px;
+            height: 24px;
             display: flex;
-            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s;
         }
 
-        .sms-group input {
-            flex: 1;
+        .close-btn:hover {
+            color: #666;
         }
 
-        .sms-btn {
-            padding: 0 15px;
-            background: #2D5C9E;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            white-space: nowrap;
+        .form-actions {
+            padding: 20px;
+            border-top: 1px solid #f0f0f0;
         }
 
         .submit-btn {
@@ -997,10 +1182,11 @@
             border-radius: 6px;
             font-size: 16px;
             cursor: pointer;
+            transition: background-color 0.3s;
         }
 
         .submit-btn:hover {
-            opacity: 0.9;
+            background: #1a3c6e;
         }
 
         .agreement-content,
@@ -1026,6 +1212,478 @@
         .about-content p {
             text-align: center;
             margin: 5px 0;
+        }
+
+        /* 企业招聘页面样式 */
+        .recruitment-container {
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #f5f7fa;
+        }
+
+        .recruitment-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+        }
+
+        .recruitment-header h2 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .recruitment-header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .recruitment-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            padding: 0 20px;
+            margin-bottom: 60px;
+        }
+
+        .recruitment-btn {
+            height: 200px;
+            border: none;
+            border-radius: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .student-btn {
+            background: linear-gradient(135deg, #2D5C9E, #1a3c6e);
+            color: white;
+        }
+
+        .enterprise-btn {
+            background: linear-gradient(135deg, #1890ff, #096dd9);
+            color: white;
+        }
+
+        .recruitment-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+        }
+
+        .recruitment-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .recruitment-btn i {
+            font-size: 32px;
+        }
+
+        .recruitment-btn span {
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        .job-list, .applicant-list {
+            padding: 15px;
+        }
+
+        .job-card, .applicant-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .job-card h3, .applicant-card h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .job-info, .applicant-info {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .job-actions, .applicant-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .apply-btn, .view-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .apply-btn {
+            background: #2D5C9E;
+            color: white;
+        }
+
+        .view-btn {
+            background: #1890ff;
+            color: white;
+        }
+
+        /* 招聘内容样式 */
+        .recruitment-content {
+            padding: 20px;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .content-header {
+            margin-bottom: 20px;
+        }
+
+        .content-header h2 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 40px 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .search-box i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .job-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .job-card h3 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .job-info {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .job-info p {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .job-info i {
+            margin-right: 8px;
+            color: #2D5C9E;
+        }
+
+        .job-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .job-tag {
+            padding: 4px 12px;
+            background: #f0f5ff;
+            color: #2D5C9E;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .job-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .apply-btn {
+            flex: 1;
+            padding: 10px;
+            background: #2D5C9E;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .apply-btn:hover {
+            background: #1a3c6e;
+        }
+
+        /* 应聘者详情样式 */
+        .applicant-profile {
+            padding: 20px;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 20px;
+            color: #333;
+        }
+
+        .profile-info p {
+            margin: 0;
+            color: #666;
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 24px;
+            font-weight: bold;
+            color: #2D5C9E;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .profile-sections {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .profile-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .profile-section h4 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .activity-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 15px;
+        }
+
+        .timeline-date {
+            min-width: 80px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-content h5 {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+
+        .timeline-content p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .personality-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .personality-tag {
+            padding: 6px 12px;
+            background: #f0f5ff;
+            color: #2D5C9E;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .skill-radar {
+            width: 100%;
+            height: 300px;
+        }
+
+        /* 招聘列表容器样式 */
+        .job-list-container {
+            height: calc(100vh - 180px);
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .job-list-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .job-list-container::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 3px;
+        }
+
+        .job-list-container::-webkit-scrollbar-thumb {
+            background: #2D5C9E;
+            border-radius: 3px;
+        }
+
+        /* 职位详情样式 */
+        .job-detail-content {
+            padding: 20px;
+        }
+
+        .job-header {
+            margin-bottom: 20px;
+        }
+
+        .job-title {
+            font-size: 24px;
+            color: #333;
+            margin: 0 0 10px 0;
+        }
+
+        .job-company {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .job-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .info-item i {
+            color: #2D5C9E;
+            font-size: 18px;
+        }
+
+        .info-item .label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .info-item .value {
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .job-section {
+            margin-bottom: 25px;
+        }
+
+        .job-section h4 {
+            font-size: 18px;
+            color: #333;
+            margin: 0 0 15px 0;
+        }
+
+        .job-description,
+        .job-requirements,
+        .job-benefits {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .job-description ul,
+        .job-requirements ul,
+        .job-benefits ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .job-description li,
+        .job-requirements li,
+        .job-benefits li {
+            margin-bottom: 8px;
+        }
+
+        .job-actions {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f0;
         }
     </style>
 

@@ -838,7 +838,7 @@ body {
     grid-template-columns: repeat(2, 1fr);
     gap: 15px;
     padding: 15px;
-    height: calc(100vh - 33vh - 140px); /* 减去热门活动高度、导航栏高度和padding */
+    height: calc(100vh - 33vh - 235px); /* 减去热门活动高度、导航栏高度和padding */
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: #2D5C9E #f0f0f0;

@@ -13,17 +13,19 @@ function initNavigation() {
             
             // 更新导航项状态
             navItems.forEach(nav => nav.classList.remove('active'));
-            item.classList.add('active');
+            item.classList.add('active');                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
 
             // 更新页面显示状态
             pages.forEach(page => {
                 if (page.id === targetPageId) {
                     page.style.display = 'block';
                     page.classList.add('active');
-                    // 如果切换到活动页面，初始化活动列表
+                    // 如果切换到活动页面，初始化活动列表并默认显示已报名标签
                     if (targetPageId === 'activities') {
-                        updateActivityList('hosted');
-                        updateActivityList('joined');
+                        const joinedTab = document.querySelector('.activities-tabs .tab-btn[data-tab="joined"]');
+                        if (joinedTab) {
+                            joinedTab.click(); // 触发已报名标签的点击事件
+                        }
                     }
                     // 如果切换到学习日常页面，初始化学习记录
                     if (targetPageId === 'learning') {
@@ -44,134 +46,84 @@ function initActivitiesPage() {
     const tabButtons = document.querySelectorAll('.activities-tabs .tab-btn');
     const tabContents = document.querySelectorAll('.activities-content');
 
-    // 更新标签名称
+    // 更新标签名称和顺序
     const hostedTab = document.querySelector('.activities-tabs .tab-btn[data-tab="hosted"]');
     const joinedTab = document.querySelector('.activities-tabs .tab-btn[data-tab="joined"]');
-    if (hostedTab) hostedTab.textContent = '举办活动';
-    if (joinedTab) joinedTab.textContent = '已报名';
+    if (hostedTab) {
+        hostedTab.textContent = '举办活动';
+    }
+    if (joinedTab) {
+        joinedTab.textContent = '已报名';
+    }
+
+    // 默认显示已报名标签
+    tabButtons.forEach(btn => {
+        const tabId = btn.getAttribute('data-tab');
+        if (tabId === 'joined') {
+            btn.classList.add('active');
+            const content = document.getElementById(tabId);
+            if (content) {
+                content.style.display = 'block';
+                content.classList.add('active');
+            }
+        } else {
+            btn.classList.remove('active');
+            const content = document.getElementById(tabId);
+            if (content) {
+                content.style.display = 'none';
+                content.classList.remove('active');
+            }
+        }
+    });
 
     tabButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-            // 更新按钮状态
-            tabButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            // 更新内容显示
             const tabId = btn.getAttribute('data-tab');
-            tabContents.forEach(content => {
-                if (content.id === tabId) {
-                    content.style.display = 'block';
-                    content.classList.add('active');
-                } else {
-                    content.style.display = 'none';
-                    content.classList.remove('active');
-                }
-            });
             
-            // 更新活动列表
-            updateActivityList(tabId);
+            // 如果点击举办活动标签，显示教师身份验证
+            if (tabId === 'hosted') {
+                showTeacherVerificationModal(() => {
+                    // 验证成功后的回调
+                    updateTabDisplay(tabId);
+                });
+                return;
+            }
+            
+            // 更新标签显示
+            updateTabDisplay(tabId);
         });
     });
 
-    // 创建活动按钮
-    const createBtn = document.querySelector('.create-activity-btn');
-    if (createBtn) {
-        // 移除现有的事件监听器
-        const newCreateBtn = createBtn.cloneNode(true);
-        createBtn.parentNode.replaceChild(newCreateBtn, createBtn);
-        
-        newCreateBtn.addEventListener('click', (e) => {
-            e.preventDefault(); // 阻止默认行为
-            const modal = document.getElementById('createActivityModal');
-            if (modal) {
-                // 更新模态框内容
-                modal.innerHTML = `
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h3>创建新活动</h3>
-                            <button class="close-btn">&times;</button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="createActivityForm">
-                                <div class="form-group">
-                                    <label>活动标题</label>
-                                    <input type="text" name="title" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>活动时间</label>
-                                    <input type="datetime-local" name="time" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>活动地点</label>
-                                    <input type="text" name="location" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>最大参与人数</label>
-                                    <input type="number" name="maxParticipants" min="1" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>活动描述</label>
-                                    <textarea name="description" rows="3" required></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label>活动封面</label>
-                                    <input type="file" name="image" accept="image/*" required>
-                                </div>
-                                <button type="submit" class="submit-btn">创建活动</button>
-                            </form>
-                        </div>
-                    </div>
-                `;
-                
-                // 添加关闭按钮事件监听
-                const closeBtn = modal.querySelector('.close-btn');
-                closeBtn.addEventListener('click', () => {
-                    modal.classList.remove('active');
-                });
-                
-                // 添加表单提交事件监听
-                const form = modal.querySelector('#createActivityForm');
-                form.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    const formData = new FormData(e.target);
-                    
-                    // 创建新活动对象
-                    const newActivity = {
-                        id: 'hosted' + (hostedActivities.length + 1),
-                        title: formData.get('title'),
-                        time: formData.get('time'),
-                        location: formData.get('location'),
-                        maxParticipants: parseInt(formData.get('maxParticipants')),
-                        currentParticipants: 0,
-                        status: 'pending',
-                        description: formData.get('description'),
-                        image: URL.createObjectURL(formData.get('image'))
-                    };
-                    
-                    // 添加到举办活动列表
-                    hostedActivities.push(newActivity);
-                    
-                    // 关闭模态框
-                    modal.classList.remove('active');
-                    
-                    // 更新活动列表显示
-                    updateActivityList('hosted');
-                    
-                    // 显示成功提示
-                    alert('活动已提交审核！');
-                    
-                    // 重置表单
-                    e.target.reset();
-                });
-                
-                modal.classList.add('active');
-            }
-        });
-    }
-
     // 初始化活动列表
-    updateActivityList('hosted');
     updateActivityList('joined');
+    updateActivityList('hosted');
+}
+
+// 更新标签显示
+function updateTabDisplay(tabId) {
+    const tabButtons = document.querySelectorAll('.activities-tabs .tab-btn');
+    const tabContents = document.querySelectorAll('.activities-content');
+    
+    // 更新按钮状态
+    tabButtons.forEach(b => b.classList.remove('active'));
+    const activeBtn = document.querySelector(`.activities-tabs .tab-btn[data-tab="${tabId}"]`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
+    
+    // 更新内容显示
+    tabContents.forEach(content => {
+        if (content.id === tabId) {
+            content.style.display = 'block';
+            content.classList.add('active');
+        } else {
+            content.style.display = 'none';
+            content.classList.remove('active');
+        }
+    });
+    
+    // 更新活动列表
+    updateActivityList(tabId);
 }
 
 // 初始化学习日常页面
@@ -1340,19 +1292,12 @@ registerForm.addEventListener('submit', (e) => {
     const formData = new FormData(registerForm);
     const phone = formData.get('phone');
     const idCard = formData.get('idCard');
-    const xuexin = formData.get('xuexin');
     const password = formData.get('password');
     const confirmPassword = formData.get('confirmPassword');
     
     // 验证身份证
     if (!idCard || !/^\d{17}[\dX]$/.test(idCard)) {
         showError('idCard', '请输入正确的身份证号码');
-        return;
-    }
-    
-    // 验证学信网账号
-    if (!xuexin) {
-        showError('xuexin', '请输入学信网账号');
         return;
     }
     
@@ -1445,6 +1390,61 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById(tabId).classList.add('active');
         });
     });
+
+    // 更新注册表单HTML
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+        registerForm.innerHTML = `
+            <div class="form-group">
+                <input type="tel" name="phone" placeholder="请输入手机号" required pattern="[0-9]{11}">
+            </div>
+            <div class="form-group sms-group">
+                <input type="text" name="code" placeholder="请输入验证码" required pattern="[0-9]{6}">
+                <button type="button" class="sms-btn">获取验证码</button>
+            </div>
+            <div class="form-group">
+                <input type="text" name="idCard" placeholder="请输入身份证号" required pattern="[0-9Xx]{18}">
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" placeholder="请设置密码" required minlength="6">
+            </div>
+            <div class="form-group">
+                <input type="password" name="confirmPassword" placeholder="请确认密码" required minlength="6">
+            </div>
+            <button type="submit" class="submit-btn">注册</button>
+            <div class="form-footer">
+                已有账号？<a href="#" id="showLogin">立即登录</a>
+            </div>
+        `;
+
+        // 为验证码按钮添加事件监听
+        const smsBtn = registerForm.querySelector('.sms-btn');
+        if (smsBtn) {
+            smsBtn.addEventListener('click', () => {
+                const phoneInput = registerForm.querySelector('input[name="phone"]');
+                const phone = phoneInput.value;
+
+                if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
+                    alert('请输入正确的手机号码');
+                    return;
+                }
+                
+                // 模拟发送验证码
+                alert('验证码已发送！');
+                startCountdown(smsBtn);
+            });
+        }
+
+        // 为立即登录链接添加事件监听
+        const showLoginLink = registerForm.querySelector('#showLogin');
+        if (showLoginLink) {
+            showLoginLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.getElementById('registerForm').classList.remove('active');
+                document.getElementById('loginForm').classList.add('active');
+            });
+        }
+    }
 
     initCharts();
     updateTimeline();
@@ -2137,56 +2137,160 @@ function updateActivityList(type) {
     
     const activities = type === 'hosted' ? hostedActivities : joinedActivities;
     
-    container.innerHTML = activities.map(activity => {
-        if (type === 'hosted') {
-            return `
-                <div class="activity-card">
-                    <h3>${activity.title}</h3>
-                    <div class="activity-info">
-                        <p><i class="anticon anticon-calendar"></i> ${activity.time}</p>
-                        <p><i class="anticon anticon-environment"></i> ${activity.location}</p>
-                        <p><i class="anticon anticon-user"></i> ${activity.currentParticipants}/${activity.maxParticipants}人</p>
-                        <p>状态：${getStatusText(activity.status)}</p>
+    container.innerHTML = `
+        ${type === 'hosted' ? `
+            <div class="create-activity-btn" onclick="showCreateActivityModal()">
+                <i class="anticon anticon-plus"></i>
+                创建新活动
+            </div>
+        ` : ''}
+        ${activities.map(activity => {
+            if (type === 'hosted') {
+                return `
+                    <div class="activity-card">
+                        <h3>${activity.title}</h3>
+                        <div class="activity-info">
+                            <p><i class="anticon anticon-calendar"></i> ${activity.time}</p>
+                            <p><i class="anticon anticon-environment"></i> ${activity.location}</p>
+                            <p><i class="anticon anticon-user"></i> ${activity.currentParticipants}/${activity.maxParticipants}人</p>
+                            <p>状态：${getStatusText(activity.status)}</p>
+                        </div>
+                        <div class="activity-actions">
+                            ${activity.status === 'approved' ? `
+                                <button onclick="checkTeacherVerification('showScanQRCode', '${activity.id}')" class="action-btn checkin-btn">
+                                    <i class="anticon anticon-qrcode"></i>
+                                    扫码签到
+                                </button>
+                                <button onclick="checkTeacherVerification('showActivityManagement', '${activity.id}')" class="action-btn checkin-btn">
+                                    <i class="anticon anticon-setting"></i>
+                                    活动管理
+                                </button>
+                                <button onclick="checkTeacherVerification('cancelActivity', '${activity.id}')" class="action-btn checkin-btn">
+                                    <i class="anticon anticon-close-circle"></i>
+                                    取消活动
+                                </button>
+                            ` : ''}
+                        </div>
                     </div>
-                    <div class="activity-actions">
-                        ${activity.status === 'approved' ? `
-                            <button onclick="showScanQRCode('${activity.id}')" class="checkin-btn">扫码签到</button>
-                            <button onclick="cancelActivity('${activity.id}')" class="cancel-btn">取消活动</button>
-                        ` : ''}
+                `;
+            } else {
+                return `
+                    <div class="activity-card">
+                        <h3>${activity.title}</h3>
+                        <div class="activity-info">
+                            <p><i class="anticon anticon-calendar"></i> ${activity.time}</p>
+                            <p><i class="anticon anticon-environment"></i> ${activity.location}</p>
+                            <p>状态：${getStatusText(activity.status)}</p>
+                        </div>
+                        <div class="activity-actions">
+                            ${activity.status === 'upcoming' ? `
+                                <button onclick="showQRCode('${activity.id}')" class="action-btn checkin-btn">
+                                    <i class="anticon anticon-qrcode"></i>
+                                    签到二维码
+                                </button>
+                                <button onclick="cancelJoin('${activity.id}')" class="action-btn checkin-btn">
+                                    <i class="anticon anticon-close-circle"></i>
+                                    取消报名
+                                </button>
+                            ` : ''}
+                        </div>
                     </div>
-                </div>
-            `;
-        } else {
-            return `
-                <div class="activity-card">
-                    <h3>${activity.title}</h3>
-                    <div class="activity-info">
-                        <p><i class="anticon anticon-calendar"></i> ${activity.time}</p>
-                        <p><i class="anticon anticon-environment"></i> ${activity.location}</p>
-                        <p>状态：${getStatusText(activity.status)}</p>
-                    </div>
-                    <div class="activity-actions">
-                        ${activity.status === 'upcoming' ? `
-                            <button onclick="showQRCode('${activity.id}')" class="checkin-btn">签到二维码</button>
-                            <button onclick="cancelJoin('${activity.id}')" class="cancel-btn">取消报名</button>
-                        ` : ''}
-                    </div>
-                </div>
-            `;
-        }
-    }).join('');
+                `;
+            }
+        }).join('')}
+    `;
 
-    // 为所有按钮添加事件监听器
-    const buttons = container.querySelectorAll('button');
-    buttons.forEach(button => {
-        const action = button.textContent.trim();
-        if (action === '签到二维码') {
-            button.addEventListener('click', () => {
-                const activityId = button.closest('.activity-card').querySelector('h3').textContent;
-                showQRCode(activityId);
-            });
+    // 添加样式
+    const style = document.createElement('style');
+    style.textContent = `
+        .create-activity-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 15px;
+            background: #2D5C9E;
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-    });
+
+        .create-activity-btn:hover {
+            background: #1a3c6e;
+        }
+
+        .create-activity-btn i {
+            font-size: 16px;
+        }
+
+        .activity-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 120px;
+            justify-content: center;
+        }
+
+        .action-btn i {
+            font-size: 16px;
+        }
+
+        .checkin-btn {
+            background: #2D5C9E;
+            color: white;
+        }
+
+        .checkin-btn:hover {
+            background: #1a3c6e;
+        }
+
+        .activity-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .activity-card h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .activity-info {
+            color: #666;
+        }
+
+        .activity-info p {
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .activity-info i {
+            color: #2D5C9E;
+        }
+    `;
+    
+    document.head.appendChild(style);
 }
 
 // 获取状态文本
@@ -3002,4 +3106,1781 @@ document.addEventListener('DOMContentLoaded', () => {
     initHotActivitiesScroll();
 });
 
+// ... existing code ...
+
+// 检查教师身份验证
+function checkTeacherVerification(action, activityId) {
+    const isVerified = localStorage.getItem('teacherVerified');
+    if (!isVerified) {
+        showTeacherVerificationModal(() => {
+            // 验证成功后的回调
+            if (action === 'showScanQRCode') {
+                showScanQRCode(activityId);
+            } else if (action === 'showActivityManagement') {
+                showActivityManagement(activityId);
+            } else if (action === 'cancelActivity') {
+                cancelActivity(activityId);
+            }
+        });
+    } else {
+        // 已验证，直接执行操作
+        if (action === 'showScanQRCode') {
+            showScanQRCode(activityId);
+        } else if (action === 'showActivityManagement') {
+            showActivityManagement(activityId);
+        } else if (action === 'cancelActivity') {
+            cancelActivity(activityId);
+        }
+    }
+}
+
+// 显示教师身份验证模态框
+function showTeacherVerificationModal(callback) {
+    // 如果已经存在模态框，先移除它
+    const existingModal = document.querySelector('.modal.teacher-verification-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'modal teacher-verification-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>教师身份验证</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="teacherVerificationForm">
+                    <div class="form-group">
+                        <label>所属学校</label>
+                        <input type="text" name="school" placeholder="请输入学校名称" required>
+                    </div>
+                    <div class="form-group">
+                        <label>工号</label>
+                        <input type="text" name="teacherId" placeholder="请输入10位工号" required pattern="[0-9]{10}">
+                    </div>
+                    <button type="submit" class="submit-btn">验证身份</button>
+                </form>
+            </div>
+        </div>
+    `;
+    
+    // 添加样式
+    const style = document.createElement('style');
+    style.textContent = `
+        .teacher-verification-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .teacher-verification-modal.active {
+            opacity: 1;
+        }
+
+        .teacher-verification-modal .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            transform: translateY(20px);
+            transition: transform 0.3s;
+        }
+
+        .teacher-verification-modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .teacher-verification-modal .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .teacher-verification-modal .modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .teacher-verification-modal .modal-body {
+            padding: 20px;
+        }
+
+        .teacher-verification-modal .form-group {
+            margin-bottom: 15px;
+        }
+
+        .teacher-verification-modal .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .teacher-verification-modal .form-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .teacher-verification-modal .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: #2D5C9E;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .teacher-verification-modal .submit-btn:hover {
+            background: #1a3c6e;
+        }
+
+        .teacher-verification-modal .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #666;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+    `;
+    
+    document.head.appendChild(style);
+    document.body.appendChild(modal);
+
+    // 确保模态框显示
+    requestAnimationFrame(() => {
+        modal.classList.add('active');
+    });
+
+    // 关闭模态框
+    const closeBtn = modal.querySelector('.close-btn');
+    closeBtn.addEventListener('click', () => {
+        modal.classList.remove('active');
+        setTimeout(() => modal.remove(), 300);
+    });
+
+    // 点击模态框外部关闭
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+            setTimeout(() => modal.remove(), 300);
+        }
+    });
+
+    // 表单提交
+    const form = modal.querySelector('form');
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const school = formData.get('school');
+        const teacherId = formData.get('teacherId');
+
+        // 验证工号格式
+        if (!/^[0-9]{10}$/.test(teacherId)) {
+            alert('请输入正确的10位工号');
+            return;
+        }
+
+        // 模拟验证过程
+        const submitBtn = form.querySelector('.submit-btn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = '验证中...';
+
+        setTimeout(() => {
+            // 验证成功
+            localStorage.setItem('teacherVerified', 'true');
+            localStorage.setItem('teacherSchool', school);
+            localStorage.setItem('teacherId', teacherId);
+            
+            submitBtn.disabled = false;
+            submitBtn.textContent = '验证身份';
+            
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.remove();
+                // 执行回调函数
+                if (typeof callback === 'function') {
+                    callback();
+                }
+            }, 300);
+        }, 1500);
+    });
+}
+
+// 显示活动管理界面
+function showActivityManagement(activityId) {
+    const activity = hostedActivities.find(a => a.id === activityId);
+    if (!activity) return;
+
+    // 创建模态框
+    const modal = document.createElement('div');
+    modal.className = 'modal activity-management-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>活动管理 - ${activity.title}</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="attendance-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">已参加</span>
+                        <span class="stat-value">${activity.currentParticipants}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">缺勤</span>
+                        <span class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">未签到</span>
+                        <span class="stat-value">${activity.maxParticipants - activity.currentParticipants}</span>
+                    </div>
+                </div>
+                <div class="participants-list">
+                    <h4>参与人员列表</h4>
+                    <div class="list-header">
+                        <span>姓名</span>
+                        <span>学号</span>
+                        <span>签到状态</span>
+                        <span>操作</span>
+                    </div>
+                    <div class="list-content">
+                        ${generateParticipantsList(activity)}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 添加样式
+    const style = document.createElement('style');
+    style.textContent = `
+        .activity-management-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .activity-management-modal.active {
+            opacity: 1;
+        }
+
+        .activity-management-modal .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(20px);
+            transition: transform 0.3s;
+        }
+
+        .activity-management-modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .activity-management-modal .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .activity-management-modal .modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .activity-management-modal .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .attendance-stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .stat-label {
+            display: block;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            display: block;
+            color: #333;
+            font-size: 24px;
+            font-weight: 500;
+        }
+
+        .participants-list {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .participants-list h4 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .list-header {
+            display: grid;
+            grid-template-columns: 2fr 2fr 1fr 2fr;
+            gap: 10px;
+            padding: 12px 15px;
+            background: #f8f9fa;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .list-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .participant-item {
+            display: grid;
+            grid-template-columns: 2fr 2fr 1fr 2fr;
+            gap: 10px;
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+        }
+
+        .participant-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .status-present {
+            background: #e6f7ff;
+            color: #1890ff;
+        }
+
+        .status-absent {
+            background: #fff1f0;
+            color: #ff4d4f;
+        }
+
+        .status-pending {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #2D5C9E;
+            color: white;
+        }
+
+        .action-btn:hover {
+            background: #1a3c6e;
+        }
+
+        .action-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+    `;
+
+    document.head.appendChild(style);
+    document.body.appendChild(modal);
+
+    // 显示模态框
+    requestAnimationFrame(() => {
+        modal.classList.add('active');
+    });
+
+    // 关闭模态框
+    const closeBtn = modal.querySelector('.close-btn');
+    closeBtn.addEventListener('click', () => {
+        modal.classList.remove('active');
+        setTimeout(() => modal.remove(), 300);
+    });
+
+    // 点击模态框外部关闭
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+            setTimeout(() => modal.remove(), 300);
+        }
+    });
+
+    // 添加签到状态切换事件
+    const actionButtons = modal.querySelectorAll('.action-btn');
+    actionButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const participantItem = button.closest('.participant-item');
+            const participantId = participantItem.dataset.id;
+            const action = button.dataset.action;
+            
+            // 更新签到状态
+            updateParticipantStatus(participantItem, action);
+            
+            // 更新统计数据
+            updateAttendanceStats(modal, activity);
+            
+            // 禁用已点击的按钮
+            const buttons = participantItem.querySelectorAll('.action-btn');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+            });
+        });
+    });
+}
+
+// 生成参与人员列表
+function generateParticipantsList(activity) {
+    // 模拟参与人员数据
+    const participants = [
+        { id: 1, name: '张三', studentId: '2021001', status: 'pending' },
+        { id: 2, name: '李四', studentId: '2021002', status: 'pending' },
+        { id: 3, name: '王五', studentId: '2021003', status: 'pending' },
+        { id: 4, name: '赵六', studentId: '2021004', status: 'pending' },
+        { id: 5, name: '钱七', studentId: '2021005', status: 'pending' }
+    ];
+
+    return participants.map(p => `
+        <div class="participant-item" data-id="${p.id}">
+            <span>${p.name}</span>
+            <span>${p.studentId}</span>
+            <span class="status-tag status-${p.status}">${getStatusText(p.status)}</span>
+            <div class="action-buttons">
+                <button class="action-btn" data-action="present">参加</button>
+                <button class="action-btn" data-action="absent">缺勤</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// 更新参与人员状态
+function updateParticipantStatus(participantItem, status) {
+    const statusTag = participantItem.querySelector('.status-tag');
+    statusTag.className = `status-tag status-${status}`;
+    statusTag.textContent = getStatusText(status);
+}
+
+// 更新签到统计
+function updateAttendanceStats(modal, activity) {
+    const stats = modal.querySelectorAll('.stat-value');
+    const participants = modal.querySelectorAll('.participant-item');
+    
+    let present = 0;
+    let absent = 0;
+    let pending = 0;
+
+    participants.forEach(p => {
+        const status = p.querySelector('.status-tag').classList[1].replace('status-', '');
+        if (status === 'present') present++;
+        else if (status === 'absent') absent++;
+        else pending++;
+    });
+
+    stats[0].textContent = present;
+    stats[1].textContent = absent;
+    stats[2].textContent = pending;
+}
+
+// 获取状态文本
+function getStatusText(status) {
+    const statusMap = {
+        'present': '已参加',
+        'absent': '缺勤',
+        'pending': '未签到',
+        'pending': '待审核',
+        'approved': '已通过',
+        'rejected': '已拒绝',
+        'upcoming': '即将开始',
+        'completed': '已完成',
+        'cancelled': '已取消'
+    };
+    return statusMap[status] || status;
+}
+
+// ... existing code ...
+
+// 显示创建活动模态框
+function showCreateActivityModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal create-activity-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>创建新活动</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="createActivityForm">
+                    <div class="form-group">
+                        <label>活动标题</label>
+                        <input type="text" name="title" placeholder="请输入活动标题" required>
+                    </div>
+                    <div class="form-group">
+                        <label>活动时间</label>
+                        <input type="datetime-local" name="time" required>
+                    </div>
+                    <div class="form-group">
+                        <label>活动地点</label>
+                        <input type="text" name="location" placeholder="请输入活动地点" required>
+                    </div>
+                    <div class="form-group">
+                        <label>最大参与人数</label>
+                        <input type="number" name="maxParticipants" min="1" placeholder="请输入最大参与人数" required>
+                    </div>
+                    <div class="form-group">
+                        <label>活动描述</label>
+                        <textarea name="description" rows="4" placeholder="请输入活动描述" required></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">创建活动</button>
+                </form>
+            </div>
+        </div>
+    `;
+
+    // 添加样式
+    const style = document.createElement('style');
+    style.textContent = `
+        .create-activity-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .create-activity-modal.active {
+            opacity: 1;
+        }
+
+        .create-activity-modal .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            transform: translateY(20px);
+            transition: transform 0.3s;
+        }
+
+        .create-activity-modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .create-activity-modal .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .create-activity-modal .modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .create-activity-modal .modal-body {
+            padding: 20px;
+        }
+
+        .create-activity-modal .form-group {
+            margin-bottom: 15px;
+        }
+
+        .create-activity-modal .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .create-activity-modal .form-group input,
+        .create-activity-modal .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .create-activity-modal .form-group textarea {
+            resize: vertical;
+        }
+
+        .create-activity-modal .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: #2D5C9E;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .create-activity-modal .submit-btn:hover {
+            background: #1a3c6e;
+        }
+
+        .create-activity-modal .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #666;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+    `;
+
+    document.head.appendChild(style);
+    document.body.appendChild(modal);
+
+    // 显示模态框
+    requestAnimationFrame(() => {
+        modal.classList.add('active');
+    });
+
+    // 关闭模态框
+    const closeBtn = modal.querySelector('.close-btn');
+    closeBtn.addEventListener('click', () => {
+        modal.classList.remove('active');
+        setTimeout(() => modal.remove(), 300);
+    });
+
+    // 点击模态框外部关闭
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+            setTimeout(() => modal.remove(), 300);
+        }
+    });
+
+    // 表单提交
+    const form = modal.querySelector('form');
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        
+        // 创建新活动对象
+        const newActivity = {
+            id: 'hosted' + (hostedActivities.length + 1),
+            title: formData.get('title'),
+            time: formData.get('time'),
+            location: formData.get('location'),
+            maxParticipants: parseInt(formData.get('maxParticipants')),
+            currentParticipants: 0,
+            status: 'pending',
+            description: formData.get('description')
+        };
+
+        // 添加到活动列表
+        hostedActivities.push(newActivity);
+        
+        // 更新活动列表显示
+        updateActivityList('hosted');
+        
+        // 关闭模态框
+        modal.classList.remove('active');
+        setTimeout(() => modal.remove(), 300);
+        
+        // 显示成功提示
+        alert('活动创建成功！');
+    });
+}
+
+// ... existing code ...
+
+// 企业招聘相关函数
+function showStudentLogin() {
+    const modal = document.getElementById('studentLoginModal');
+    modal.classList.add('active');
+}
+
+function closeStudentLogin() {
+    const modal = document.getElementById('studentLoginModal');
+    modal.classList.remove('active');
+    // 显示学生端内容
+    showStudentContent();
+}
+
+function showStudentContent() {
+    // 隐藏身份选择按钮
+    document.querySelector('.recruitment-buttons').style.display = 'none';
+    // 显示学生端内容
+    const studentContent = document.getElementById('studentContent');
+    studentContent.style.display = 'block';
+    // 隐藏企业端内容
+    document.getElementById('enterpriseContent').style.display = 'none';
+    // 加载职位列表
+    loadJobList();
+}
+
+function showEnterpriseLogin() {
+    const modal = document.getElementById('enterpriseLoginModal');
+    modal.classList.add('active');
+}
+
+function closeEnterpriseLogin() {
+    const modal = document.getElementById('enterpriseLoginModal');
+    modal.classList.remove('active');
+    // 显示企业端内容
+    showEnterpriseContent();
+}
+
+function showEnterpriseContent() {
+    // 隐藏身份选择按钮
+    document.querySelector('.recruitment-buttons').style.display = 'none';
+    // 显示企业端内容
+    const enterpriseContent = document.getElementById('enterpriseContent');
+    enterpriseContent.style.display = 'block';
+    // 隐藏学生端内容
+    document.getElementById('studentContent').style.display = 'none';
+    // 加载应聘者列表
+    loadApplicantList();
+}
+
+// ... rest of the existing code ...
+
+function loadJobList() {
+    const jobList = document.querySelector('.job-list');
+    // 示例数据
+    const jobs = [
+        {
+            id: 'job1',
+            title: '思政课教师',
+            company: '新时代思政教育研究院',
+            location: '北京',
+            salary: '15k-25k',
+            requirements: '熟悉思政教育理论，有教学经验',
+            tags: ['思政教育', '教师', '马克思主义理论'],
+            description: [
+                '负责高校思政课程的教学工作',
+                '开展思政教育理论研究和实践探索',
+                '参与思政课程建设和教学改革',
+                '指导学生开展思政实践活动'
+            ],
+            requirements: [
+                '硕士及以上学历，马克思主义理论相关专业',
+                '2年以上思政教学经验',
+                '熟悉思政教育理论体系',
+                '具备良好的教学能力和科研能力',
+                '有高校思政教学经验优先',
+                '中共党员优先'
+            ],
+            benefits: [
+                '具有市场竞争力的薪资待遇',
+                '五险一金、补充商业保险',
+                '寒暑假带薪休假',
+                '定期学术交流活动',
+                '完善的培训体系',
+                '良好的晋升空间'
+            ],
+            publishDate: '2024-03-15',
+            headcount: 2
+        },
+        {
+            id: 'job2',
+            title: '思政教育研究员',
+            company: '马克思主义理论研究中心',
+            location: '上海',
+            salary: '20k-35k',
+            requirements: '熟悉马克思主义理论，有研究经验',
+            tags: ['思政研究', '马克思主义', '理论创新'],
+            description: [
+                '开展思政教育理论研究',
+                '参与思政教育政策研究',
+                '编写思政教育教材和资料',
+                '组织思政教育学术活动'
+            ],
+            requirements: [
+                '博士学历，马克思主义理论相关专业',
+                '3年以上思政研究经验',
+                '熟悉马克思主义理论体系',
+                '有高水平学术成果',
+                '具备良好的科研能力',
+                '中共党员优先'
+            ],
+            benefits: [
+                '具有市场竞争力的薪资待遇',
+                '五险一金、补充商业保险',
+                '弹性工作制',
+                '定期学术交流活动',
+                '完善的培训体系',
+                '良好的晋升空间'
+            ],
+            publishDate: '2024-03-14',
+            headcount: 3
+        },
+        {
+            id: 'job3',
+            title: '思政教育项目主管',
+            company: '青年思政教育发展中心',
+            location: '深圳',
+            salary: '18k-30k',
+            requirements: '有思政教育项目管理经验',
+            tags: ['项目管理', '思政教育', '青年工作'],
+            description: [
+                '负责思政教育项目的规划与实施',
+                '开展青年思政教育活动',
+                '组织思政教育实践活动',
+                '协调各部门推进项目开展'
+            ],
+            requirements: [
+                '本科及以上学历，思想政治教育相关专业',
+                '2年以上思政教育项目管理经验',
+                '熟悉思政教育工作流程',
+                '具备良好的组织协调能力',
+                '有青年工作经验优先',
+                '中共党员优先'
+            ],
+            benefits: [
+                '具有市场竞争力的薪资待遇',
+                '五险一金、补充商业保险',
+                '弹性工作制',
+                '定期项目分享会',
+                '完善的培训体系',
+                '良好的晋升空间'
+            ],
+            publishDate: '2024-03-13',
+            headcount: 2
+        },
+        {
+            id: 'job4',
+            title: '思政教育课程设计师',
+            company: '思政教育创新中心',
+            location: '杭州',
+            salary: '15k-25k',
+            requirements: '有思政课程设计经验',
+            tags: ['课程设计', '思政教育', '教学设计'],
+            description: [
+                '负责思政教育课程体系设计',
+                '开发思政教育课程内容',
+                '设计思政教育实践活动',
+                '评估课程实施效果'
+            ],
+            requirements: [
+                '硕士及以上学历，思想政治教育相关专业',
+                '2年以上思政课程设计经验',
+                '熟悉思政教育理论体系',
+                '具备课程开发能力',
+                '有高校思政课程设计经验优先',
+                '中共党员优先'
+            ],
+            benefits: [
+                '具有市场竞争力的薪资待遇',
+                '五险一金、补充商业保险',
+                '弹性工作制',
+                '定期教研活动',
+                '完善的培训体系',
+                '良好的晋升空间'
+            ],
+            publishDate: '2024-03-12',
+            headcount: 2
+        },
+        {
+            id: 'job5',
+            title: '思政教育数据分析师',
+            company: '思政教育评估中心',
+            location: '广州',
+            salary: '20k-35k',
+            requirements: '熟悉教育数据分析，有思政教育经验',
+            tags: ['数据分析', '思政教育', '教育评估'],
+            description: [
+                '负责思政教育效果评估分析',
+                '建立思政教育评估指标体系',
+                '开展思政教育数据研究',
+                '为思政教育改革提供数据支持'
+            ],
+            requirements: [
+                '硕士及以上学历，教育学或统计学相关专业',
+                '3年以上教育数据分析经验',
+                '熟悉教育评估方法',
+                '具备数据分析能力',
+                '有思政教育研究经验优先',
+                '中共党员优先'
+            ],
+            benefits: [
+                '具有市场竞争力的薪资待遇',
+                '五险一金、补充商业保险',
+                '弹性工作制',
+                '定期学术交流活动',
+                '完善的培训体系',
+                '良好的晋升空间'
+            ],
+            publishDate: '2024-03-11',
+            headcount: 3
+        }
+    ];
+
+    jobList.innerHTML = jobs.map((job, index) => `
+        <div class="job-card" onclick="showJobDetail('${job.id}')" style="${index === jobs.length - 1 ? 'margin-bottom: 300px;' : ''}">
+            <h3>${job.title}</h3>
+            <div class="job-info">
+                <p><i class="anticon anticon-bank"></i> ${job.company}</p>
+                <p><i class="anticon anticon-environment"></i> ${job.location}</p>
+                <p><i class="anticon anticon-dollar"></i> ${job.salary}</p>
+            </div>
+            <div class="job-tags">
+                ${job.tags.map(tag => `<span class="job-tag">${tag}</span>`).join('')}
+            </div>
+        </div>
+    `).join('');
+
+    // 保存职位数据供详情页使用
+    window.jobsData = jobs;
+}
+
+function showJobDetail(jobId) {
+    const job = window.jobsData.find(j => j.id === jobId);
+    if (!job) return;
+
+    const modal = document.getElementById('jobDetailModal');
+    const content = modal.querySelector('.modal-content');
+    
+    content.innerHTML = `
+        <div class="modal-header">
+            <h2>${job.title}</h2>
+            <button class="close-btn" onclick="closeJobDetail()">×</button>
+        </div>
+        <div class="job-detail-content">
+            <div class="job-basic-info">
+                <div class="company-info" onclick="showCompanyDetail('${job.company}')">
+                    <h3><i class="anticon anticon-bank"></i> ${job.company}</h3>
+                    <p class="click-hint">点击查看企业详情</p>
+                </div>
+                <div class="job-meta">
+                    <p><i class="anticon anticon-environment"></i> ${job.location}</p>
+                    <p><i class="anticon anticon-dollar"></i> ${job.salary}</p>
+                    <p><i class="anticon anticon-calendar"></i> 发布时间：${job.publishDate}</p>
+                    <p><i class="anticon anticon-team"></i> 招聘人数：${job.headcount}人</p>
+                </div>
+            </div>
+            <div class="job-description">
+                <h3>职位描述</h3>
+                <ul>
+                    ${job.description.map(item => `<li>${item}</li>`).join('')}
+                </ul>
+            </div>
+            <div class="job-requirements">
+                <h3>任职要求</h3>
+                <ul>
+                    ${job.requirements.map(item => `<li>${item}</li>`).join('')}
+                </ul>
+            </div>
+            <div class="job-benefits">
+                <h3>福利待遇</h3>
+                <ul>
+                    ${job.benefits.map(item => `<li>${item}</li>`).join('')}
+                </ul>
+            </div>
+            <div class="job-actions">
+                <button class="apply-btn" onclick="applyJob('${job.title}')">申请职位</button>
+            </div>
+        </div>
+    `;
+    
+    modal.classList.add('active');
+}
+
+function showCompanyDetail(companyName) {
+    // 企业详情数据
+    const companyDetails = {
+        '新时代思政教育研究院': {
+            description: '新时代思政教育研究院是专注于思政教育研究和实践的专业机构，致力于推动思政教育创新发展。',
+            establishment: '2018年',
+            scale: '100-200人',
+            location: '北京市海淀区',
+            achievements: [
+                '承担多项国家级思政教育研究项目',
+                '出版思政教育专著20余部',
+                '获得国家级教学成果奖',
+                '与50余所高校建立合作关系'
+            ],
+            culture: [
+                '坚持立德树人根本任务',
+                '注重理论与实践相结合',
+                '重视教师队伍建设',
+                '强调创新驱动发展'
+            ]
+        },
+        '马克思主义理论研究中心': {
+            description: '马克思主义理论研究中心是从事马克思主义理论研究和教育的专业机构，致力于马克思主义中国化研究。',
+            establishment: '2015年',
+            scale: '50-100人',
+            location: '上海市徐汇区',
+            achievements: [
+                '主持多项国家社科基金项目',
+                '发表高水平学术论文100余篇',
+                '举办国际学术研讨会',
+                '培养博士研究生30余名'
+            ],
+            culture: [
+                '坚持马克思主义指导地位',
+                '注重理论创新',
+                '重视学术交流',
+                '强调人才培养'
+            ]
+        },
+        '青年思政教育发展中心': {
+            description: '青年思政教育发展中心是专注于青年思政教育的专业机构，致力于青年思想政治教育工作。',
+            establishment: '2019年',
+            scale: '50-100人',
+            location: '深圳市南山区',
+            achievements: [
+                '开展青年思政教育活动100余场',
+                '服务青年群体超过10万人次',
+                '获得省级优秀组织奖',
+                '建立青年思政教育基地20个'
+            ],
+            culture: [
+                '关注青年成长',
+                '注重实践育人',
+                '重视创新方法',
+                '强调服务意识'
+            ]
+        },
+        '思政教育创新中心': {
+            description: '思政教育创新中心是致力于思政教育创新的专业机构，专注于思政教育课程设计和教学方法创新。',
+            establishment: '2020年',
+            scale: '30-50人',
+            location: '杭州市西湖区',
+            achievements: [
+                '开发思政教育课程50余门',
+                '获得教学创新奖',
+                '建立思政教育实践基地',
+                '培训思政教师1000余人'
+            ],
+            culture: [
+                '坚持创新驱动',
+                '注重课程建设',
+                '重视教师培训',
+                '强调实践效果'
+            ]
+        },
+        '思政教育评估中心': {
+            description: '思政教育评估中心是专注于思政教育效果评估的专业机构，致力于建立科学的思政教育评估体系。',
+            establishment: '2017年',
+            scale: '30-50人',
+            location: '广州市天河区',
+            achievements: [
+                '建立思政教育评估指标体系',
+                '完成评估项目100余项',
+                '发表评估研究报告30余篇',
+                '获得省级优秀成果奖'
+            ],
+            culture: [
+                '坚持科学评估',
+                '注重数据支撑',
+                '重视研究创新',
+                '强调服务决策'
+            ]
+        }
+    };
+
+    const company = companyDetails[companyName];
+    if (!company) return;
+
+    const modal = document.createElement('div');
+    modal.className = 'modal company-detail-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>${companyName}</h2>
+                <button class="close-btn" onclick="this.closest('.company-detail-modal').remove()">×</button>
+            </div>
+            <div class="company-detail-content">
+                <div class="company-basic-info">
+                    <p class="company-description">${company.description}</p>
+                    <div class="company-meta">
+                        <p><i class="anticon anticon-calendar"></i> 成立时间：${company.establishment}</p>
+                        <p><i class="anticon anticon-team"></i> 规模：${company.scale}</p>
+                        <p><i class="anticon anticon-environment"></i> 地址：${company.location}</p>
+                    </div>
+                </div>
+                <div class="company-achievements">
+                    <h3>主要成就</h3>
+                    <ul>
+                        ${company.achievements.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
+                </div>
+                <div class="company-culture">
+                    <h3>企业文化</h3>
+                    <ul>
+                        ${company.culture.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('active'), 10);
+}
+
+// 添加企业详情弹窗的样式
+const style = document.createElement('style');
+style.textContent = `
+    .company-detail-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .company-detail-modal.active {
+        display: flex;
+        opacity: 1;
+    }
+
+    .company-detail-modal .modal-content {
+        background: white;
+        width: 92%;
+        max-width: 360px;
+        margin: 20px auto;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        max-height: 85vh;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .company-detail-modal .modal-header {
+        padding: 12px 16px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 1;
+    }
+
+    .company-detail-modal .modal-header h2 {
+        margin: 0;
+        font-size: 18px;
+        color: #333;
+        font-weight: 600;
+    }
+
+    .company-detail-modal .close-btn {
+        width: 24px;
+        height: 24px;
+        border: none;
+        background: none;
+        font-size: 20px;
+        color: #999;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+
+    .company-detail-content {
+        padding: 16px;
+        overflow-y: auto;
+        flex: 1;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .company-basic-info {
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .company-description {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #333;
+        margin-bottom: 12px;
+    }
+
+    .company-meta {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .company-meta p {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        font-size: 13px;
+        margin: 0;
+    }
+
+    .company-achievements,
+    .company-culture {
+        margin-top: 12px;
+    }
+
+    .company-achievements h3,
+    .company-culture h3 {
+        color: #333;
+        margin-bottom: 8px;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .company-achievements ul,
+    .company-culture ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .company-achievements li,
+    .company-culture li {
+        padding: 6px 0;
+        border-bottom: 1px solid #eee;
+        color: #666;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .company-achievements li:last-child,
+    .company-culture li:last-child {
+        border-bottom: none;
+    }
+
+    .company-info {
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 8px;
+        transition: background-color 0.3s;
+        margin-bottom: 12px;
+    }
+
+    .company-info:hover {
+        background-color: #f5f5f5;
+    }
+
+    .click-hint {
+        font-size: 12px;
+        color: #1890ff;
+        margin-top: 4px;
+    }
+
+    /* 自定义滚动条样式 */
+    .company-detail-content::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .company-detail-content::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 2px;
+    }
+
+    .company-detail-content::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 2px;
+    }
+
+    .company-detail-content::-webkit-scrollbar-thumb:hover {
+        background: #999;
+    }
+
+    /* 添加底部安全区域 */
+    .company-detail-modal .modal-content::after {
+        content: '';
+        display: block;
+        height: env(safe-area-inset-bottom, 0);
+    }
+
+    /* 适配刘海屏 */
+    @supports (padding-top: env(safe-area-inset-top)) {
+        .company-detail-modal .modal-content {
+            margin-top: calc(20px + env(safe-area-inset-top));
+        }
+    }
+`;
+document.head.appendChild(style);
+
+function closeJobDetail() {
+    const modal = document.getElementById('jobDetailModal');
+    modal.classList.remove('active');
+}
+
+function applyJob(jobTitle) {
+    alert(`申请成功！\n您已成功申请职位：${jobTitle}\n请等待企业回复消息`);
+}
+
+// 添加学生登录表单提交事件监听
+document.addEventListener('DOMContentLoaded', function() {
+    const studentLoginForm = document.getElementById('studentLoginForm');
+    if (studentLoginForm) {
+        studentLoginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            // 这里可以添加实际的登录验证逻辑
+            closeStudentLogin();
+            showStudentContent();
+        });
+    }
+
+    // 添加企业登录表单提交事件监听
+    const enterpriseLoginForm = document.getElementById('enterpriseLoginForm');
+    if (enterpriseLoginForm) {
+        enterpriseLoginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            // 这里可以添加实际的登录验证逻辑
+            closeEnterpriseLogin();
+            showEnterpriseContent();
+        });
+    }
+});
+// ... existing code ...
+
+// ... existing code ...
+function loadApplicantList() {
+    const applicantList = document.querySelector('.applicant-list');
+    // 示例数据
+    const applicants = [
+        {
+            id: 'app1',
+            name: '王硕',
+            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=王硕',
+            school: '北京大学',
+            major: '马克思主义理论',
+            grade: '2024届',
+            activities: 15,
+            projects: 3,
+            score: 92,
+            tags: ['优秀学生干部', '青年大学习标兵', '思政活动积极分子']
+        },
+        {
+            id: 'app2',
+            name: '孙强',
+            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=孙强',
+            school: '清华大学',
+            major: '思想政治教育',
+            grade: '2024届',
+            activities: 18,
+            projects: 4,
+            score: 95,
+            tags: ['优秀党员', '学术创新奖', '思政课优秀学员']
+        },
+        {
+            id: 'app3',
+            name: '李梦',
+            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=李梦',
+            school: '复旦大学',
+            major: '政治学与行政学',
+            grade: '2024届',
+            activities: 20,
+            projects: 5,
+            score: 94,
+            tags: ['优秀团干部', '社会实践先进个人', '思政课优秀学员']
+        },
+        {
+            id: 'app4',
+            name: '张伟',
+            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=张伟',
+            school: '中国人民大学',
+            major: '思想政治教育',
+            grade: '2024届',
+            activities: 16,
+            projects: 3,
+            score: 91,
+            tags: ['优秀学生干部', '青年大学习标兵', '志愿服务先进个人']
+        },
+        {
+            id: 'app5',
+            name: '陈静',
+            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=陈静',
+            school: '武汉大学',
+            major: '马克思主义理论',
+            grade: '2024届',
+            activities: 19,
+            projects: 4,
+            score: 93,
+            tags: ['优秀党员', '学术创新奖', '思政活动积极分子']
+        },
+        {
+            id: 'app6',
+            name: '刘洋',
+            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=刘洋',
+            school: '南京大学',
+            major: '政治学与行政学',
+            grade: '2024届',
+            activities: 17,
+            projects: 3,
+            score: 90,
+            tags: ['优秀团干部', '社会实践先进个人', '思政课优秀学员']
+        },
+        {
+            id: 'app7',
+            name: '王芳',
+            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=王芳',
+            school: '浙江大学',
+            major: '思想政治教育',
+            grade: '2024届',
+            activities: 21,
+            projects: 5,
+            score: 96,
+            tags: ['优秀党员', '学术创新奖', '思政活动积极分子']
+        },
+        {
+            id: 'app8',
+            name: '赵明',
+            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=赵明',
+            school: '南开大学',
+            major: '马克思主义理论',
+            grade: '2024届',
+            activities: 18,
+            projects: 4,
+            score: 92,
+            tags: ['优秀学生干部', '青年大学习标兵', '志愿服务先进个人']
+        },
+        {
+            id: 'app9',
+            name: '周婷',
+            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=周婷',
+            school: '中山大学',
+            major: '政治学与行政学',
+            grade: '2024届',
+            activities: 20,
+            projects: 5,
+            score: 94,
+            tags: ['优秀团干部', '社会实践先进个人', '思政课优秀学员']
+        },
+        {
+            id: 'app10',
+            name: '杨光',
+            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=杨光',
+            school: '四川大学',
+            major: '思想政治教育',
+            grade: '2024届',
+            activities: 19,
+            projects: 4,
+            score: 93,
+            tags: ['优秀党员', '学术创新奖', '思政活动积极分子']
+        }
+    ];
+
+    applicantList.innerHTML = applicants.map(applicant => `
+        <div class="applicant-card" onclick="showApplicantDetail('${applicant.id}')">
+            <div class="applicant-avatar">
+                <img src="${applicant.avatar}" alt="${applicant.name}">
+            </div>
+            <div class="applicant-info">
+                <h3>${applicant.name}</h3>
+                <p class="school">${applicant.school}</p>
+            </div>
+            <span class="applicant-tag">${applicant.tags[0]}</span>
+        </div>
+    `).join('');
+
+    // 保存应聘者数据供详情页使用
+    window.applicantsData = applicants;
+}
+
+function showApplicantDetail(applicantId) {
+    const applicant = window.applicantsData.find(a => a.id === applicantId);
+    if (!applicant) return;
+
+    // 生成应聘者详细数据
+    const detailData = {
+        ...applicant,
+        activities: [
+            {
+                type: '青年大学习',
+                count: Math.floor(Math.random() * 10) + 20,
+                completion: '100%',
+                latest: '2024-03-15'
+            },
+            {
+                type: '思政实践活动',
+                count: applicant.activities,
+                completion: '95%',
+                latest: '2024-03-10'
+            },
+            {
+                type: '志愿服务',
+                count: Math.floor(Math.random() * 10) + 10,
+                completion: '100%',
+                latest: '2024-03-05'
+            }
+        ],
+        projects: [
+            {
+                title: '新时代青年思想引领研究',
+                role: '项目负责人',
+                duration: '2023.09-2024.03',
+                status: '进行中'
+            },
+            {
+                title: '高校思政教育创新实践',
+                role: '核心成员',
+                duration: '2023.03-2023.12',
+                status: '已完成'
+            }
+        ],
+        skills: [
+            { name: '思政理论', level: applicant.score - 5 },
+            { name: '活动组织', level: applicant.score - 2 },
+            { name: '团队协作', level: applicant.score },
+            { name: '研究能力', level: applicant.score - 3 }
+        ],
+        personality: [
+            '积极主动',
+            '责任心强',
+            '善于沟通',
+            '创新思维'
+        ]
+    };
+
+    const modal = document.createElement('div');
+    modal.className = 'modal applicant-detail-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>应聘者详情</h2>
+                <button class="close-btn" onclick="this.closest('.applicant-detail-modal').remove()">×</button>
+            </div>
+            <div class="applicant-detail-content">
+                <div class="applicant-profile">
+                    <div class="profile-header">
+                        <img src="${applicant.avatar}" alt="${applicant.name}" class="profile-avatar">
+                        <div class="profile-info">
+                            <h3>${applicant.name}</h3>
+                            <p>${applicant.school} · ${applicant.major}</p>
+                            <p>${applicant.grade}</p>
+                        </div>
+                    </div>
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">${applicant.activities}</span>
+                            <span class="stat-label">参与活动</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${applicant.projects}</span>
+                            <span class="stat-label">研究项目</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${applicant.score}</span>
+                            <span class="stat-label">岗位适配度</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="activity-history">
+                    <h3>活动参与记录</h3>
+                    <div class="activity-list">
+                        ${detailData.activities.map(activity => `
+                            <div class="activity-item">
+                                <div class="activity-type">${activity.type}</div>
+                                <div class="activity-details">
+                                    <p>参与次数：${activity.count}次</p>
+                                    <p>完成率：${activity.completion}</p>
+                                    <p>最近参与：${activity.latest}</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="research-projects">
+                    <h3>研究项目</h3>
+                    <div class="project-list">
+                        ${detailData.projects.map(project => `
+                            <div class="project-item">
+                                <h4>${project.title}</h4>
+                                <div class="project-details">
+                                    <p>担任角色：${project.role}</p>
+                                    <p>项目周期：${project.duration}</p>
+                                    <p>项目状态：${project.status}</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="skills-assessment">
+                    <h3>能力评估</h3>
+                    <div class="skills-list">
+                        ${detailData.skills.map(skill => `
+                            <div class="skill-item">
+                                <div class="skill-name">${skill.name}</div>
+                                <div class="skill-bar">
+                                    <div class="skill-level" style="width: ${skill.level}%"></div>
+                                </div>
+                                <div class="skill-value">${skill.level}%</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="personality-traits">
+                    <h3>个人特质</h3>
+                    <div class="traits-list">
+                        ${detailData.personality.map(trait => `
+                            <span class="trait-tag">${trait}</span>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="applicant-portrait">
+                    <h3>人物画像</h3>
+                    <div class="portrait-content">
+                        <p>${applicant.name}同学在思政教育领域展现出优秀的学习能力和实践能力。作为${applicant.major}专业的学生，积极参与各类思政活动，在青年大学习、志愿服务等方面表现突出。在${detailData.projects.length}个研究项目中担任重要角色，展现出扎实的理论功底和创新思维。岗位适配度${applicant.score}分，是思政教育领域的优秀人才。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('active'), 10);
+}
+// ... existing code ...
+
+// ... existing code ...
+// 添加应聘者列表样式
+const applicantStyle = document.createElement('style');
+applicantStyle.textContent = `
+    .applicant-list {
+        height: calc(100vh - 500px); /* 调整高度，为底部导航栏留出更多空间 */
+        overflow-y: auto;
+        padding: 12px;
+        background: #f5f5f5;
+        margin-top: 60px;
+        margin-bottom: 60px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* 自定义滚动条样式 */
+    .applicant-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .applicant-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    .applicant-list::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+        transition: background 0.2s;
+    }
+
+    .applicant-list::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+
+    /* 优化滚动性能 */
+    .applicant-list {
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+        will-change: transform;
+    }
+
+    /* 确保内容不会被滚动条遮挡 */
+    .applicant-list {
+        padding-right: 16px;
+    }
+
+    /* 优化移动端滚动体验 */
+    @media screen and (max-width: 480px) {
+        .applicant-list {
+            padding-right: 12px;
+            height: calc(100vh - 480px); /* 移动端相应调整高度 */
+        }
+        
+        .applicant-list::-webkit-scrollbar {
+            width: 4px;
+        }
+    }
+`;
+document.head.appendChild(applicantStyle);
 // ... existing code ...
